@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sit-helloworld-go
+  labels:
+    app: sit-helloworld-go
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sit-helloworld-go
+  template:
+    metadata:
+      labels:
+        app: sit-helloworld-go
+    spec:
+      containers:
+        - name: sit-helloworld-go
+          image: 906394416424.dkr.ecr.ap-southeast-1.amazonaws.com/sit-helloworld-go:014
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: log-volume
+              mountPath: /log
+        - name: fluentbit
+          image: 906394416424.dkr.ecr.ap-southeast-1.amazonaws.com/aws-for-fluent-bit:2.10.0
+          env:
+            - name: srv_name
+              value: go
+            - name: namespace
+              value: helloworld
+            - name: environment
+              value: sit
+
+          volumeMounts:
+            - name: log-volume
+              mountPath: /log
+            - name: fluent-bit-config
+              mountPath: /fluent-bit/etc/
+      volumes:
+        - name: log-volume
+          emptyDir: { }
+        - name: fluent-bit-config
+          configMap:
+            name: fluent-bit-config
